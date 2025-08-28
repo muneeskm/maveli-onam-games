@@ -41,6 +41,14 @@ const WordPuzzleGame = ({ onBack }: WordPuzzleGameProps) => {
   const [feedback, setFeedback] = useState("");
   const [score, setScore] = useState(0);
   const [gameCompleted, setGameCompleted] = useState(false);
+  const [maveliHelp, setMaveliHelp] = useState(false);
+  const [maveliResponses] = useState([
+    "My dear friend, the answer is '{answer}' - the spectacular boat races that fill our hearts with joy! 🛶",
+    "Ah, you seek wisdom! The answer is '{answer}' - the beautiful flower carpets we create to welcome prosperity! 🌸",
+    "Allow me to enlighten you - '{answer}' is our grand feast, served with love on banana leaves! 🍽️",
+    "My child, the answer is '{answer}' - that's me, your beloved king who returns each year! 👑",
+    "The answer lies in '{answer}' - the mesmerizing dance that tells tales of gods and demons! 💃"
+  ]);
 
   const checkAnswer = () => {
     const correct = userAnswer.toUpperCase().trim() === onamPuzzles[currentPuzzle].answer;
@@ -54,6 +62,7 @@ const WordPuzzleGame = ({ onBack }: WordPuzzleGameProps) => {
           setCurrentPuzzle(currentPuzzle + 1);
           setUserAnswer("");
           setShowHint(false);
+          setMaveliHelp(false);
           setFeedback("");
         } else {
           setGameCompleted(true);
@@ -64,10 +73,31 @@ const WordPuzzleGame = ({ onBack }: WordPuzzleGameProps) => {
     }
   };
 
+  const askMaveli = () => {
+    const answer = onamPuzzles[currentPuzzle].answer;
+    const response = maveliResponses[currentPuzzle].replace('{answer}', answer);
+    setMaveliHelp(true);
+    setFeedback(`👑 King Maveli says: "${response}"`);
+    setUserAnswer(answer);
+    
+    setTimeout(() => {
+      if (currentPuzzle < onamPuzzles.length - 1) {
+        setCurrentPuzzle(currentPuzzle + 1);
+        setUserAnswer("");
+        setShowHint(false);
+        setMaveliHelp(false);
+        setFeedback("");
+      } else {
+        setGameCompleted(true);
+      }
+    }, 3000);
+  };
+
   const resetGame = () => {
     setCurrentPuzzle(0);
     setUserAnswer("");
     setShowHint(false);
+    setMaveliHelp(false);
     setFeedback("");
     setScore(0);
     setGameCompleted(false);
@@ -132,16 +162,24 @@ const WordPuzzleGame = ({ onBack }: WordPuzzleGameProps) => {
               onKeyPress={(e) => e.key === 'Enter' && checkAnswer()}
             />
 
-            <div className="flex gap-3">
-              <Button variant="festival" onClick={checkAnswer} className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Button variant="festival" onClick={checkAnswer} className="w-full">
                 Submit Answer
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => setShowHint(!showHint)}
-                className="flex-1"
+                className="w-full"
               >
                 {showHint ? "Hide Hint" : "Show Hint"}
+              </Button>
+              <Button 
+                variant="golden" 
+                onClick={askMaveli}
+                className="w-full"
+                disabled={maveliHelp}
+              >
+                👑 Ask Maveli
               </Button>
             </div>
 
@@ -155,6 +193,8 @@ const WordPuzzleGame = ({ onBack }: WordPuzzleGameProps) => {
               <div className={`p-4 rounded-lg text-center font-medium ${
                 feedback.includes("Correct") 
                   ? "bg-accent text-accent-foreground" 
+                  : feedback.includes("King Maveli")
+                  ? "bg-gradient-festival text-white border-2 border-primary"
                   : "bg-secondary/20 text-secondary"
               }`}>
                 {feedback}
